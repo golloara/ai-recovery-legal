@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Call Recovery – Recupera cada llamada perdida</title>
+  <meta name="description" content="AI Call Recovery responde por SMS a las llamadas que no puedes atender y convierte llamadas perdidas en citas." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --accent: #10b981;
+      --text: #0f172a;
+      --muted: #64748b;
+      --bg: #ffffff;
+      --bg-alt: #f1f5f9;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary: #60a5fa;
+        --primary-dark: #3b82f6;
+        --primary-soft: #172554;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --bg: #0b1120;
+        --bg-alt: #111827;
+        --card: #1e293b;
+        --border: #334155;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { color: inherit; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 1.25rem; }
+    section { padding: 5rem 0; }
+    .alt { background: var(--bg-alt); }
+    .eyebrow {
+      display: inline-block; font-size: .78rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--primary); background: var(--primary-soft);
+      padding: .3rem .8rem; border-radius: 999px; margin-bottom: 1rem;
+    }
+    h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -.03em; font-weight: 800; }
+    h2 { font-size: clamp(1.6rem, 3.5vw, 2.3rem); letter-spacing: -.02em; font-weight: 800; margin-bottom: .75rem; }
+    .lead { font-size: 1.15rem; color: var(--muted); max-width: 560px; }
+    .center { text-align: center; }
+    .center .lead { margin: 0 auto; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .8rem 1.4rem; border-radius: 10px; font-weight: 600; font-size: .95rem;
+      text-decoration: none; border: 1.5px solid transparent; cursor: pointer;
+      transition: transform .15s, background .2s, color .2s, border-color .2s;
+      font-family: inherit;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { background: transparent; color: var(--primary); border-color: var(--primary); }
+    .btn-outline:hover { background: var(--primary); color: #fff; }
+    .btn-ghost { background: transparent; color: var(--text); }
+    .btn-block { width: 100%; }
+
+    /* Nav */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { font-weight: 800; text-decoration: none; display: flex; align-items: center; gap: .5rem; }
+    .brand-dot { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: grid; place-items: center; color: #fff; font-size: .8rem; }
+    .nav-links { display: flex; gap: 1.75rem; list-style: none; align-items: center; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-weight: 500; font-size: .93rem; }
+    .nav-links a:hover { color: var(--primary); }
+    .menu-toggle { display: none; background: none; border: 0; font-size: 1.5rem; color: var(--text); cursor: pointer; }
+
+    @media (max-width: 760px) {
+      .menu-toggle { display: block; }
+      .nav-links {
+        position: absolute; top: 64px; left: 0; right: 0; flex-direction: column; gap: 0;
+        background: var(--bg); border-bottom: 1px solid var(--border); display: none;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links li { width: 100%; }
+      .nav-links a { display: block; padding: 1rem 1.25rem; }
+      .nav-links .btn { margin: .5rem 1.25rem 1rem; width: calc(100% - 2.5rem); }
+    }
+
+    /* Hero */
+    .hero { padding: 4.5rem 0 5rem; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 3rem; align-items: center; }
+    .hero h1 span { color: var(--primary); }
+    .hero .lead { margin: 1.25rem 0 2rem; }
+    .hero-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .trust { margin-top: 2rem; display: flex; gap: 1.5rem; flex-wrap: wrap; color: var(--muted); font-size: .88rem; }
+    .trust strong { color: var(--text); }
+
+    .phone {
+      background: var(--card); border: 1px solid var(--border); border-radius: 28px;
+      box-shadow: var(--shadow); padding: 1.25rem; max-width: 340px; margin: 0 auto;
+    }
+    .phone-top { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); margin-bottom: 1rem; }
+    .call-alert {
+      background: #fef2f2; color: #b91c1c; border-radius: 12px; padding: .7rem .9rem;
+      font-size: .85rem; font-weight: 600; margin-bottom: 1rem;
+    }
+    @media (prefers-color-scheme: dark) { .call-alert { background: #450a0a; color: #fca5a5; } }
+    .bubble { max-width: 85%; padding: .65rem .9rem; border-radius: 16px; font-size: .88rem; margin-bottom: .6rem; opacity: 0; transform: translateY(6px); transition: opacity .4s, transform .4s; }
+    .bubble.show { opacity: 1; transform: none; }
+    .bubble.bot { background: var(--primary); color: #fff; border-bottom-left-radius: 4px; }
+    .bubble.user { background: var(--bg-alt); margin-left: auto; border-bottom-right-radius: 4px; }
+    .replay { margin-top: .5rem; font-size: .8rem; }
+
+    @media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 3rem; }
+    .feature { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.6rem; }
+    .feature .icon { width: 44px; height: 44px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; font-size: 1.3rem; margin-bottom: 1rem; }
+    .feature h3 { font-size: 1.05rem; margin-bottom: .4rem; }
+    .feature p { color: var(--muted); font-size: .93rem; }
+    @media (max-width: 860px) { .features { grid-template-columns: 1fr; } }
+
+    /* Steps */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; counter-reset: step; }
+    .step { position: relative; padding-top: 3.25rem; }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      position: absolute; top: 0; left: 0; width: 40px; height: 40px; border-radius: 50%;
+      background: var(--primary); color: #fff; font-weight: 800; display: grid; place-items: center;
+    }
+    .step h3 { margin-bottom: .35rem; }
+    .step p { color: var(--muted); font-size: .95rem; }
+    @media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Calculator */
+    .calc { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); margin-top: 2.5rem; }
+    .field { margin-bottom: 1.4rem; }
+    .field label { display: flex; justify-content: space-between; font-weight: 600; font-size: .92rem; margin-bottom: .4rem; }
+    .field label output { color: var(--primary); }
+    input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .result { background: var(--primary-soft); border-radius: 12px; padding: 1.75rem; display: flex; flex-direction: column; justify-content: center; }
+    .result small { color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; font-size: .75rem; }
+    .result .big { font-size: 2.6rem; font-weight: 800; color: var(--primary); line-height: 1.1; margin: .3rem 0 .75rem; font-variant-numeric: tabular-nums; }
+    .result p { color: var(--muted); font-size: .92rem; }
+    @media (max-width: 760px) { .calc { grid-template-columns: 1fr; padding: 1.4rem; } }
+
+    /* Pricing */
+    .billing { display: inline-flex; background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 4px; margin-top: 1.75rem; }
+    .billing button { border: 0; background: none; padding: .5rem 1.1rem; border-radius: 999px; font-weight: 600; cursor: pointer; color: var(--muted); font-family: inherit; }
+    .billing button.active { background: var(--primary); color: #fff; }
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 2.5rem; text-align: left; }
+    .plan { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; display: flex; flex-direction: column; }
+    .plan.featured { border: 2px solid var(--primary); box-shadow: var(--shadow); position: relative; }
+    .plan.featured::before { content: "Más popular"; position: absolute; top: -12px; left: 1.75rem; background: var(--primary); color: #fff; font-size: .72rem; font-weight: 700; padding: .2rem .7rem; border-radius: 999px; }
+    .plan h3 { font-size: 1.1rem; }
+    .price { font-size: 2.3rem; font-weight: 800; margin: .5rem 0 .25rem; font-variant-numeric: tabular-nums; }
+    .price span { font-size: .95rem; color: var(--muted); font-weight: 500; }
+    .plan .desc { color: var(--muted); font-size: .9rem; margin-bottom: 1.25rem; }
+    .plan ul { list-style: none; margin-bottom: 1.5rem; flex: 1; }
+    .plan li { padding: .35rem 0; font-size: .93rem; }
+    .plan li::before { content: "✓"; color: var(--accent); font-weight: 800; margin-right: .5rem; }
+    @media (max-width: 860px) { .plans { grid-template-columns: 1fr; } }
+
+    /* FAQ */
+    .faq { max-width: 720px; margin: 2.5rem auto 0; }
+    .faq details { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: .75rem; }
+    .faq summary { cursor: pointer; padding: 1.1rem 1.25rem; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; color: var(--primary); font-size: 1.3rem; line-height: 1; }
+    .faq details[open] summary::after { content: "–"; }
+    .faq details p { padding: 0 1.25rem 1.1rem; color: var(--muted); font-size: .95rem; }
+
+    /* Contact */
+    .contact { display: grid; grid-template-columns: .9fr 1.1fr; gap: 3rem; align-items: start; }
+    form { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: .88rem; font-weight: 600; margin-bottom: .35rem; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: .7rem .85rem; border: 1.5px solid var(--border); border-radius: 9px;
+      font: inherit; font-size: .95rem; background: var(--bg); color: var(--text);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+    .form-group .error { color: #dc2626; font-size: .8rem; margin-top: .25rem; display: none; }
+    .form-group.invalid input, .form-group.invalid select { border-color: #dc2626; }
+    .form-group.invalid .error { display: block; }
+    .checkbox { display: flex; gap: .5rem; align-items: flex-start; font-size: .82rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .checkbox input { margin-top: .25rem; accent-color: var(--primary); }
+    .success { display: none; text-align: center; padding: 2rem 1rem; }
+    .success .check { width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 1.8rem; display: grid; place-items: center; margin: 0 auto 1rem; }
+    .contact-list { list-style: none; margin-top: 1.5rem; }
+    .contact-list li { padding: .5rem 0; color: var(--muted); }
+    @media (max-width: 860px) { .contact { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } form { padding: 1.4rem; } }
+
+    /* CTA band */
+    .cta-band { background: linear-gradient(135deg, #1d4ed8, #0f766e); color: #fff; border-radius: 20px; padding: 3rem 2rem; text-align: center; }
+    .cta-band h2 { color: #fff; }
+    .cta-band p { opacity: .9; margin-bottom: 1.5rem; }
+    .cta-band .btn-primary { background: #fff; color: #1d4ed8; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 2rem 0; color: var(--muted); font-size: .88rem; }
+    .footer-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .footer-inner a { text-decoration: none; margin-left: 1.25rem; }
+    .footer-inner a:hover { color: var(--primary); }
+
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .6); display: none; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: var(--card); border-radius: 18px; padding: 2rem; max-width: 440px; width: 100%; position: relative; }
+    .modal h3 { font-size: 1.3rem; margin-bottom: .5rem; }
+    .modal p { color: var(--muted); margin-bottom: 1.25rem; }
+    .modal-close { position: absolute; top: .75rem; right: 1rem; background: none; border: 0; font-size: 1.5rem; cursor: pointer; color: var(--muted); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translate(-50%, 200%); opacity: 0; visibility: hidden; background: var(--text); color: var(--bg); padding: .8rem 1.25rem; border-radius: 10px; font-size: .9rem; transition: transform .3s, opacity .3s, visibility .3s; z-index: 120; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container nav">
+      <a href="#inicio" class="brand"><span class="brand-dot">☎</span> AI Call Recovery</a>
+      <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" id="menuToggle">☰</button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#funciones">Funciones</a></li>
+        <li><a href="#como-funciona">Cómo funciona</a></li>
+        <li><a href="#precios">Precios</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#contacto" class="btn btn-primary" style="color:#fff">Solicitar demo</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Asistente de llamadas con IA</span>
+          <h1>Ninguna llamada perdida es <span>un cliente perdido</span>.</h1>
+          <p class="lead">Cuando no puedes contestar, AI Call Recovery envía un SMS al instante, responde dudas y agenda la cita por ti. Las 24 horas, sin cambiar de número.</p>
+          <div class="hero-actions">
+            <a href="#contacto" class="btn btn-primary">Empezar prueba gratis →</a>
+            <button class="btn btn-outline" id="openDemo">▶ Ver cómo funciona</button>
+          </div>
+          <div class="trust">
+            <div><strong>+38%</strong> citas recuperadas</div>
+            <div><strong>&lt; 10 s</strong> tiempo de respuesta</div>
+            <div><strong>14 días</strong> de prueba gratis</div>
+          </div>
+        </div>
+
+        <div class="phone" aria-label="Ejemplo de conversación por SMS">
+          <div class="phone-top"><span>9:41</span><span>Mensajes</span><span>●●●</span></div>
+          <div class="call-alert">📵 Llamada perdida · Clínica Dental Sonrisa</div>
+          <div class="bubble bot">¡Hola! Vimos que nos llamaste y no pudimos atenderte. ¿En qué te podemos ayudar?</div>
+          <div class="bubble user">Quería pedir cita para una limpieza</div>
+          <div class="bubble bot">¡Claro! Tenemos hueco el jueves a las 10:00 o a las 17:30. ¿Cuál prefieres?</div>
+          <div class="bubble user">Jueves 17:30 👍</div>
+          <div class="bubble bot">Listo ✅ Te esperamos el jueves a las 17:30. Responde STOP para dejar de recibir mensajes.</div>
+          <button class="btn btn-ghost replay" id="replayChat">↻ Repetir conversación</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="alt" id="funciones">
+      <div class="container center">
+        <span class="eyebrow">Funciones</span>
+        <h2>Todo lo que necesitas para no perder clientes</h2>
+        <p class="lead">Se instala en minutos y funciona con tu número actual.</p>
+        <div class="features" style="text-align:left">
+          <div class="feature"><div class="icon">⚡</div><h3>Respuesta instantánea</h3><p>Un SMS sale en segundos después de cada llamada perdida o colgada.</p></div>
+          <div class="feature"><div class="icon">📅</div><h3>Agenda automática</h3><p>Se conecta con tu calendario y ofrece solo los huecos disponibles.</p></div>
+          <div class="feature"><div class="icon">🤖</div><h3>IA conversacional</h3><p>Responde preguntas frecuentes sobre horarios, precios y servicios.</p></div>
+          <div class="feature"><div class="icon">📊</div><h3>Panel de resultados</h3><p>Mira cuántas llamadas recuperaste y cuántas se convirtieron en citas.</p></div>
+          <div class="feature"><div class="icon">🔒</div><h3>Cumplimiento SMS</h3><p>Opt-out con STOP, ayuda con HELP y datos que nunca se venden.</p></div>
+          <div class="feature"><div class="icon">🧑‍💼</div><h3>Traspaso a humano</h3><p>Si el cliente lo pide, te avisamos para que continúes tú la conversación.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="como-funciona">
+      <div class="container">
+        <div class="center">
+          <span class="eyebrow">Cómo funciona</span>
+          <h2>En marcha en 3 pasos</h2>
+        </div>
+        <div class="steps">
+          <div class="step"><h3>Conecta tu número</h3><p>Activa el desvío de llamadas no contestadas. Sin hardware ni apps nuevas.</p></div>
+          <div class="step"><h3>Personaliza tu asistente</h3><p>Añade horarios, servicios y el tono de tu negocio. La IA aprende de ello.</p></div>
+          <div class="step"><h3>Recupera clientes</h3><p>Cada llamada perdida recibe respuesta y tú recibes la cita en tu calendario.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROI CALCULATOR -->
+    <section class="alt" id="calculadora">
+      <div class="container">
+        <div class="center">
+          <span class="eyebrow">Calculadora</span>
+          <h2>¿Cuánto dinero pierdes en llamadas?</h2>
+          <p class="lead">Mueve los controles y estima lo que podrías recuperar cada mes.</p>
+        </div>
+        <div class="calc">
+          <div>
+            <div class="field">
+              <label for="missed">Llamadas perdidas por semana <output id="missedOut">20</output></label>
+              <input type="range" id="missed" min="1" max="100" value="20" />
+            </div>
+            <div class="field">
+              <label for="ticket">Valor medio por cliente (€) <output id="ticketOut">80 €</output></label>
+              <input type="range" id="ticket" min="10" max="500" step="10" value="80" />
+            </div>
+            <div class="field">
+              <label for="rate">Tasa de recuperación esperada <output id="rateOut">30%</output></label>
+              <input type="range" id="rate" min="5" max="60" value="30" />
+            </div>
+          </div>
+          <div class="result">
+            <small>Ingresos recuperados al mes</small>
+            <div class="big" id="roiResult">0 €</div>
+            <p id="roiDetail">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="precios">
+      <div class="container center">
+        <span class="eyebrow">Precios</span>
+        <h2>Planes simples, sin permanencia</h2>
+        <p class="lead">Cancela cuando quieras. Todos incluyen 14 días gratis.</p>
+        <div class="billing" role="group" aria-label="Periodo de facturación">
+          <button class="active" data-billing="monthly">Mensual</button>
+          <button data-billing="yearly">Anual (−20%)</button>
+        </div>
+        <div class="plans">
+          <div class="plan">
+            <h3>Básico</h3>
+            <div class="price" data-monthly="29" data-yearly="23">29 €<span>/mes</span></div>
+            <p class="desc">Para profesionales independientes.</p>
+            <ul><li>Hasta 100 llamadas/mes</li><li>SMS de seguimiento</li><li>Respuestas frecuentes</li></ul>
+            <button class="btn btn-outline btn-block" data-plan="Básico">Elegir Básico</button>
+          </div>
+          <div class="plan featured">
+            <h3>Profesional</h3>
+            <div class="price" data-monthly="79" data-yearly="63">79 €<span>/mes</span></div>
+            <p class="desc">Para negocios con agenda llena.</p>
+            <ul><li>Hasta 500 llamadas/mes</li><li>Agenda automática</li><li>Panel de resultados</li><li>Traspaso a humano</li></ul>
+            <button class="btn btn-primary btn-block" data-plan="Profesional">Elegir Profesional</button>
+          </div>
+          <div class="plan">
+            <h3>Empresa</h3>
+            <div class="price" data-monthly="199" data-yearly="159">199 €<span>/mes</span></div>
+            <p class="desc">Para varias sedes o equipos.</p>
+            <ul><li>Llamadas ilimitadas</li><li>Varias ubicaciones</li><li>Integraciones CRM</li><li>Soporte prioritario</li></ul>
+            <button class="btn btn-outline btn-block" data-plan="Empresa">Contactar ventas</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="alt" id="faq">
+      <div class="container">
+        <div class="center">
+          <span class="eyebrow">Preguntas frecuentes</span>
+          <h2>Resolvemos tus dudas</h2>
+        </div>
+        <div class="faq">
+          <details open><summary>¿Necesito cambiar mi número de teléfono?</summary><p>No. Solo activas el desvío de llamadas no contestadas hacia nuestro sistema y sigues usando tu número de siempre.</p></details>
+          <details><summary>¿Los mensajes son publicidad?</summary><p>No. Solo se envía un mensaje relacionado con la llamada reciente del cliente, para ayudarle con su consulta o cita.</p></details>
+          <details><summary>¿Qué pasa si un cliente no quiere recibir SMS?</summary><p>Puede responder STOP en cualquier momento y no recibirá más mensajes. Con HELP obtiene ayuda.</p></details>
+          <details><summary>¿Puedo probarlo antes de pagar?</summary><p>Sí, todos los planes incluyen 14 días gratis y no pedimos tarjeta para empezar.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contacto">
+      <div class="container contact">
+        <div>
+          <span class="eyebrow">Solicitar demo</span>
+          <h2>Hablemos de tu negocio</h2>
+          <p class="lead">Déjanos tus datos y te mostramos en 15 minutos cómo recuperar tus llamadas perdidas.</p>
+          <ul class="contact-list">
+            <li>✓ Demo personalizada en vivo</li>
+            <li>✓ Configuración guiada incluida</li>
+            <li>✓ Sin compromiso</li>
+          </ul>
+        </div>
+
+        <form id="contactForm" novalidate>
+          <div id="formFields">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name">Nombre</label>
+                <input id="name" name="name" type="text" placeholder="Tu nombre" required />
+                <div class="error">Escribe tu nombre.</div>
+              </div>
+              <div class="form-group">
+                <label for="business">Negocio</label>
+                <input id="business" name="business" type="text" placeholder="Nombre del negocio" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" placeholder="tu@email.com" required />
+                <div class="error">Escribe un email válido.</div>
+              </div>
+              <div class="form-group">
+                <label for="phone">Teléfono</label>
+                <input id="phone" name="phone" type="tel" placeholder="+34 600 000 000" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="plan">Plan de interés</label>
+              <select id="plan" name="plan" required>
+                <option value="">Selecciona un plan</option>
+                <option>Básico</option>
+                <option>Profesional</option>
+                <option>Empresa</option>
+              </select>
+              <div class="error">Elige un plan.</div>
+            </div>
+            <div class="form-group">
+              <label for="message">Mensaje (opcional)</label>
+              <textarea id="message" name="message" rows="3" placeholder="Cuéntanos cuántas llamadas recibes..."></textarea>
+            </div>
+            <label class="checkbox"><input type="checkbox" id="terms" required /> <span>Acepto la <a href="privacy-policy.html">política de privacidad</a> y los <a href="terms-and-conditions.html">términos</a>.</span></label>
+            <button type="submit" class="btn btn-primary btn-block">Solicitar demo gratis</button>
+          </div>
+          <div class="success" id="formSuccess">
+            <div class="check">✓</div>
+            <h3>¡Gracias, <span id="successName"></span>!</h3>
+            <p style="color:var(--muted);margin:.5rem 0 1.25rem">Hemos recibido tu solicitud. Te contactaremos en menos de 24 horas.</p>
+            <button type="button" class="btn btn-outline" id="resetForm">Enviar otra solicitud</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section style="padding-top:0">
+      <div class="container">
+        <div class="cta-band">
+          <h2>Empieza a recuperar llamadas hoy</h2>
+          <p>14 días gratis. Sin tarjeta. Configuración en 5 minutos.</p>
+          <a href="#contacto" class="btn btn-primary">Crear mi cuenta gratis</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>© 2026 AI Call Recovery</span>
+      <nav>
+        <a href="index.html">Información SMS</a>
+        <a href="privacy-policy.html">Privacidad</a>
+        <a href="terms-and-conditions.html">Términos</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- Demo modal -->
+  <div class="modal-backdrop" id="demoModal" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
+    <div class="modal">
+      <button class="modal-close" id="closeDemo" aria-label="Cerrar">×</button>
+      <h3 id="demoTitle">Prueba la demo</h3>
+      <p>Simula una llamada perdida y mira cómo responde el asistente en el teléfono de la derecha.</p>
+      <button class="btn btn-primary btn-block" id="simulateCall">📞 Simular llamada perdida</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Mobile menu
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    menuToggle.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', open);
+    });
+    navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+    // Toast
+    const toast = document.getElementById('toast');
+    let toastTimer;
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    // Chat animation
+    const bubbles = document.querySelectorAll('.bubble');
+    let chatTimers = [];
+    function playChat() {
+      chatTimers.forEach(clearTimeout);
+      bubbles.forEach(b => b.classList.remove('show'));
+      bubbles.forEach((b, i) => chatTimers.push(setTimeout(() => b.classList.add('show'), 500 + i * 900)));
+    }
+    playChat();
+    document.getElementById('replayChat').addEventListener('click', playChat);
+
+    // Demo modal
+    const modal = document.getElementById('demoModal');
+    const closeModal = () => modal.classList.remove('open');
+    document.getElementById('openDemo').addEventListener('click', () => modal.classList.add('open'));
+    document.getElementById('closeDemo').addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    document.getElementById('simulateCall').addEventListener('click', () => {
+      closeModal();
+      document.querySelector('.phone').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showToast('📵 Llamada perdida detectada… enviando SMS');
+      playChat();
+    });
+
+    // ROI calculator
+    const missed = document.getElementById('missed');
+    const ticket = document.getElementById('ticket');
+    const rate = document.getElementById('rate');
+    const fmt = n => n.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' €';
+    function updateRoi() {
+      const m = +missed.value, t = +ticket.value, r = +rate.value;
+      document.getElementById('missedOut').textContent = m;
+      document.getElementById('ticketOut').textContent = t + ' €';
+      document.getElementById('rateOut').textContent = r + '%';
+      const clients = Math.round(m * 4.33 * r / 100);
+      document.getElementById('roiResult').textContent = fmt(clients * t);
+      document.getElementById('roiDetail').textContent =
+        `≈ ${clients} clientes recuperados al mes de ${Math.round(m * 4.33)} llamadas perdidas.`;
+    }
+    [missed, ticket, rate].forEach(el => el.addEventListener('input', updateRoi));
+    updateRoi();
+
+    // Pricing toggle
+    document.querySelectorAll('.billing button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.billing button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const mode = btn.dataset.billing;
+        document.querySelectorAll('.price').forEach(p => {
+          p.innerHTML = `${p.dataset[mode]} €<span>/mes${mode === 'yearly' ? ' · anual' : ''}</span>`;
+        });
+      });
+    });
+
+    // Plan buttons -> preselect plan in form
+    document.querySelectorAll('[data-plan]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('plan').value = btn.dataset.plan;
+        document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' });
+        showToast(`Plan ${btn.dataset.plan} seleccionado`);
+      });
+    });
+
+    // Contact form
+    const form = document.getElementById('contactForm');
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      let ok = true;
+      const check = (id, valid) => {
+        const group = document.getElementById(id).closest('.form-group');
+        group.classList.toggle('invalid', !valid);
+        if (!valid) ok = false;
+      };
+      check('name', document.getElementById('name').value.trim().length > 1);
+      check('email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(document.getElementById('email').value.trim()));
+      check('plan', document.getElementById('plan').value !== '');
+      if (!document.getElementById('terms').checked) { ok = false; showToast('Debes aceptar la política de privacidad'); }
+      if (!ok) return;
+
+      document.getElementById('successName').textContent = document.getElementById('name').value.trim().split(' ')[0];
+      document.getElementById('formFields').style.display = 'none';
+      document.getElementById('formSuccess').style.display = 'block';
+    });
+    form.querySelectorAll('input, select').forEach(el =>
+      el.addEventListener('input', () => el.closest('.form-group')?.classList.remove('invalid')));
+    document.getElementById('resetForm').addEventListener('click', () => {
+      form.reset();
+      document.getElementById('formFields').style.display = 'block';
+      document.getElementById('formSuccess').style.display = 'none';
+    });
+  </script>
+</body>
+</html>
