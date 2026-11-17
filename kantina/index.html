@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kantina Breakfast &amp; Bites</title>
+<meta name="description" content="Order breakfast from Kantina — build your order and send it on WhatsApp.">
+<meta name="theme-color" content="#8E1B1B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Lobster&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --maroon: #8E1B1B;
+    --maroon-dark: #6E1212;
+    --red: #C8372D;
+    --yellow: #F5C242;
+    --yellow-soft: #FBE3A1;
+    --cream: #FBF3E6;
+    --card: #FFFBF4;
+    --line: #EADBC4;
+    --ink: #3A1A12;
+    --muted: #7A5A4C;
+    --green: #1E8E3E;
+    --green-dark: #17732F;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Nunito", system-ui, sans-serif;
+    min-height: 100vh;
+  }
+  button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; overflow-x: hidden; padding-bottom: 96px; }
+
+  /* Decorative corner swooshes */
+  .app::before, .app::after {
+    content: ""; position: absolute; top: 70px; width: 70px; height: 40px; z-index: 0;
+  }
+  .app::before { left: -20px; background: var(--red); border-radius: 0 60px 60px 0; transform: rotate(-18deg); }
+  .app::after  { right: -20px; background: var(--yellow); border-radius: 60px 0 0 60px; transform: rotate(18deg); }
+
+  /* Header */
+  header { position: relative; z-index: 1; padding: 14px 16px 6px; text-align: center; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; height: 40px; }
+  .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; position: relative; color: var(--maroon); }
+  .icon-btn svg { width: 26px; height: 26px; }
+  .badge {
+    position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding: 0 5px;
+    border-radius: 9px; background: var(--maroon); color: #fff; font-size: 11px; font-weight: 700;
+    display: grid; place-items: center;
+  }
+  .badge[hidden] { display: none; }
+  .awning { width: 64px; height: 18px; margin: -34px auto 0; border-radius: 6px 6px 2px 2px;
+    background: repeating-linear-gradient(90deg, var(--red) 0 8px, var(--yellow) 8px 16px); }
+  .brand { font-family: "Bree Serif", serif; color: var(--maroon); font-size: 22px; letter-spacing: 3px; margin: 2px 0 0; }
+  .tagline { font-family: "Lobster", cursive; color: var(--maroon); font-size: 38px; line-height: 1; margin: 0 0 4px; }
+
+  /* Menu grid */
+  .section-title { font-family: "Bree Serif", serif; color: var(--maroon); font-size: 20px; margin: 14px 16px 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 12px; position: relative; z-index: 1; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; display: flex; flex-direction: column; text-align: left;
+    box-shadow: 0 2px 6px rgba(80, 30, 10, .06);
+  }
+  .card img { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; display: block; background: #f3e6d2; }
+  .card-body { padding: 8px 10px 10px; display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; }
+  .card h3 { font-family: "Bree Serif", serif; color: var(--maroon); font-size: 18px; margin: 0; font-weight: 400; }
+  .price { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .add {
+    width: 30px; height: 30px; border-radius: 8px; background: var(--yellow); color: var(--maroon);
+    font-size: 22px; font-weight: 700; line-height: 1; display: grid; place-items: center; flex: none;
+  }
+
+  /* Sticky bottom bar */
+  .bottom-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--cream) 70%, rgba(251,243,230,0));
+  }
+  .bottom-bar .inner { max-width: 448px; margin: 0 auto; }
+  .btn {
+    width: 100%; padding: 14px 16px; border-radius: 12px; font-family: "Bree Serif", serif; font-size: 19px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-primary { background: var(--maroon); color: #fff; box-shadow: 0 4px 12px rgba(142,27,27,.3); }
+  .btn-primary:active { background: var(--maroon-dark); }
+  .btn-primary:disabled { background: #C9B3A6; box-shadow: none; cursor: default; }
+  .btn-wa { background: var(--green); color: #fff; box-shadow: 0 4px 12px rgba(30,142,62,.3); }
+  .btn-wa:active { background: var(--green-dark); }
+  .btn-wa:disabled { background: #A8C7B0; box-shadow: none; }
+  .btn-wa svg { width: 26px; height: 26px; }
+
+  /* Overlay + sheets */
+  .overlay { position: fixed; inset: 0; background: rgba(40, 15, 5, .45); z-index: 10; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; margin: 0 auto; max-width: 480px;
+    background: var(--cream); border-radius: 20px 20px 0 0; max-height: 88vh; overflow-y: auto;
+    transform: translateY(105%); transition: transform .25s ease-out;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .sheet.open { transform: translateY(0); }
+  .sheet-img { width: 100%; height: 190px; object-fit: cover; display: block; }
+  .sheet-content { padding: 14px 16px 16px; }
+  .sheet h2 { font-family: "Bree Serif", serif; color: var(--maroon); font-weight: 400; font-size: 26px; margin: 0; }
+  .sheet .desc { color: var(--muted); margin: 4px 0 8px; font-size: 14px; }
+  .close-x {
+    position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,.92); color: var(--maroon); font-size: 22px; display: grid; place-items: center;
+  }
+  fieldset { border: 0; padding: 0; margin: 14px 0 0; }
+  legend { font-weight: 700; font-size: 15px; margin-bottom: 6px; padding: 0; display: flex; gap: 8px; align-items: center; }
+  legend small { font-weight: 600; color: var(--muted); font-size: 12px; background: var(--yellow-soft); padding: 1px 8px; border-radius: 10px; }
+  .opt {
+    display: flex; align-items: center; gap: 10px; padding: 11px 12px; margin-bottom: 6px;
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; font-size: 15px;
+  }
+  .opt:has(input:checked) { border-color: var(--maroon); background: #FFF6E6; }
+  .opt input { accent-color: var(--maroon); width: 18px; height: 18px; margin: 0; }
+  .opt .delta { margin-left: auto; color: var(--muted); font-weight: 600; font-size: 14px; }
+  .qty-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  .stepper { display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); }
+  .stepper button { width: 42px; height: 46px; font-size: 22px; color: var(--maroon); font-weight: 700; }
+  .stepper span { min-width: 26px; text-align: center; font-weight: 700; font-size: 17px; }
+  .qty-row .btn { flex: 1; font-size: 17px; padding: 13px 10px; }
+
+  /* Cart view */
+  .cart-view {
+    position: fixed; inset: 0; z-index: 8; background: var(--cream); overflow-y: auto;
+    transform: translateX(100%); transition: transform .25s ease-out;
+  }
+  .cart-view.open { transform: translateX(0); }
+  .cart-inner { max-width: 480px; margin: 0 auto; padding-bottom: 110px; position: relative; }
+  .order-title { font-family: "Bree Serif", serif; color: var(--maroon); font-size: 34px; text-align: center; margin: 8px 0 6px; }
+  .order-title::before, .order-title::after { content: "\2726"; color: var(--yellow); font-size: 20px; margin: 0 10px; vertical-align: middle; }
+  .mode { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+  .mode label {
+    padding: 6px 16px; border-radius: 20px; background: var(--card); border: 1.5px solid var(--line);
+    font-weight: 700; color: var(--maroon); font-size: 14px;
+  }
+  .mode label:has(input:checked) { background: var(--yellow); border-color: var(--yellow); }
+  .mode input { position: absolute; opacity: 0; pointer-events: none; }
+  .line {
+    display: flex; gap: 10px; align-items: center; margin: 0 12px 8px; padding: 8px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  }
+  .line img { width: 72px; height: 58px; object-fit: cover; border-radius: 10px; flex: none; }
+  .line .info { flex: 1; min-width: 0; }
+  .line h4 { font-family: "Bree Serif", serif; color: var(--maroon); font-size: 17px; margin: 0; font-weight: 400; }
+  .line .opts { font-size: 12.5px; color: var(--muted); margin: 1px 0 6px; }
+  .line .mini { display: flex; align-items: center; gap: 2px; }
+  .line .mini button { width: 28px; height: 28px; border-radius: 8px; background: var(--yellow-soft); color: var(--maroon); font-weight: 700; font-size: 17px; }
+  .line .mini span { min-width: 24px; text-align: center; font-weight: 700; }
+  .line .lp { font-weight: 700; color: var(--maroon); align-self: flex-start; padding-top: 2px; white-space: nowrap; }
+  .empty { text-align: center; color: var(--muted); padding: 30px 20px; }
+  .field { margin: 12px 12px 0; }
+  .field label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .field input, .field textarea {
+    width: 100%; padding: 11px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card);
+    font: inherit; font-size: 16px; color: var(--ink);
+  }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .total-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 16px 12px 0; padding-top: 12px; border-top: 1.5px solid var(--maroon);
+    font-family: "Bree Serif", serif; color: var(--maroon); font-size: 24px;
+  }
+  .hint { text-align: center; font-size: 12.5px; color: var(--muted); margin: 8px 16px 0; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 92px; transform: translate(-50%, 20px); z-index: 20;
+    background: var(--ink); color: #fff; padding: 9px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;
+    opacity: 0; transition: .2s; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="topbar">
+      <span class="icon-btn" aria-hidden="true"></span>
+      <button class="icon-btn" id="cartBtn" aria-label="View order">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.7 12.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/></svg>
+        <span class="badge" id="badge" hidden>0</span>
+      </button>
+    </div>
+    <div class="awning"></div>
+    <p class="brand">KANTINA</p>
+    <h1 class="tagline">Breakfast &amp; Bites</h1>
+  </header>
+
+  <main id="menu"></main>
+
+  <div class="bottom-bar">
+    <div class="inner">
+      <button class="btn btn-primary" id="viewOrder" disabled>Add something to start</button>
+    </div>
+  </div>
+</div>
+
+<!-- Item customisation sheet -->
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+
+<!-- Cart / order view -->
+<section class="cart-view" id="cartView" aria-label="Your order">
+  <div class="cart-inner">
+    <header>
+      <div class="topbar">
+        <button class="icon-btn" id="backBtn" aria-label="Back to menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <span class="icon-btn" aria-hidden="true"></span>
+      </div>
+      <div class="awning"></div>
+      <p class="brand">KANTINA</p>
+      <p class="tagline" style="font-size:30px">Breakfast &amp; Bites</p>
+    </header>
+    <h2 class="order-title">Your order</h2>
+    <div class="mode" role="radiogroup" aria-label="Pickup or delivery">
+      <label><input type="radio" name="mode" value="Pickup" checked> 📍 Pickup</label>
+      <label><input type="radio" name="mode" value="Delivery"> 🛵 Delivery</label>
+    </div>
+    <div id="lines"></div>
+    <div id="extra">
+      <div class="field">
+        <label for="custName">Your name</label>
+        <input id="custName" autocomplete="name" placeholder="So we know who it's for">
+      </div>
+      <div class="field" id="addrField" hidden>
+        <label for="custAddr">Delivery address</label>
+        <input id="custAddr" autocomplete="street-address" placeholder="Street, area, landmark">
+      </div>
+      <div class="field">
+        <label for="custNote">Notes (optional)</label>
+        <textarea id="custNote" placeholder="Pickup time, allergies…"></textarea>
+      </div>
+      <div class="total-row"><span>Total</span><span id="total">TT$0</span></div>
+      <p class="hint">Opens WhatsApp with your order ready to send. We'll confirm it in the chat.</p>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <div class="inner">
+      <button class="btn btn-wa" id="waBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3c.2-.4.2-.9.2-1-.1-.1-.3-.2-.5-.3z"/></svg>
+        Order on WhatsApp
+      </button>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =====================================================================
+   CONFIGURATION — edit these to set up the shop
+   ===================================================================== */
+
+// WhatsApp number that receives orders: country code + number, digits only.
+// Trinidad & Tobago example: "18681234567". Leave "" to let the customer pick the chat (good for testing).
+const WHATSAPP_NUMBER = "";
+
+const CURRENCY = "TT$";
+
+/* MENU — to add a dish, copy one block and change it.
+   - price: base price
+   - options: groups of choices.
+       type "one"  = pick exactly one (radio)
+       type "many" = pick any (checkboxes)
+     Each choice can have "add": extra cost on top of the base price.
+     "label" is what the customer sees; "say" is how it reads in the WhatsApp message.
+   NOTE: options marked "example" are placeholders — replace them with the real ones. */
+const MENU = [
+  {
+    category: "Breakfast",
+    items: [
+      {
+        id: "pancakes", name: "Pancakes", price: 55, img: "img/pancakes.jpg",
+        desc: "Fluffy stack, served warm.",
+        options: [
+          { title: "Topping", type: "one", choices: [
+            { label: "Strawberries", say: "strawberries" },
+            { label: "Eggs", say: "eggs" }
+          ]},
+          { title: "Syrup", type: "one", choices: [
+            { label: "Maple syrup", say: "maple syrup" },
+            { label: "Honey", say: "honey" },               // example
+            { label: "Chocolate", say: "chocolate syrup" }  // example
+          ]}
+        ]
+      },
+      {
+        id: "bagels", name: "Bagels", price: 40, fromPrice: true, img: "img/bagels.jpg",
+        desc: "Toasted and pressed.",
+        options: [
+          { title: "Filling", type: "one", choices: [
+            { label: "Cream cheese", say: "cream cheese" },          // example
+            { label: "Ham & cheese", say: "ham & cheese", add: 10 }  // example
+          ]}
+        ]
+      },
+      {
+        id: "omelette", name: "Omelette", price: 50, fromPrice: true, img: "img/omelette.jpg",
+        desc: "Served with toast.",
+        options: [
+          { title: "Extras", type: "many", choices: [
+            { label: "Mushrooms", say: "mushrooms", add: 5 },  // example
+            { label: "Cheese", say: "cheese", add: 5 },        // example
+            { label: "Ham", say: "ham", add: 10 }              // example
+          ]}
+        ]
+      },
+      {
+        id: "sandwich", name: "Sandwich", price: 30, img: "img/sandwich.jpg",
+        desc: "Fresh sub roll.",
+        options: [
+          { title: "Extras", type: "many", choices: [
+            { label: "Add chicken", say: "added chicken", add: 15 }
+          ]}
+        ]
+      }
+    ]
+  }
+];
+
+/* =====================================================================
+   APP — no need to edit below
+   ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const money = (n) => CURRENCY + (Number.isInteger(n) ? n : n.toFixed(2));
+const ITEMS = Object.fromEntries(MENU.flatMap(c => c.items).map(i => [i.id, i]));
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let cart = [];  // { key, id, sel: [[groupIdx, choiceIdx], ...], qty }
+try { cart = JSON.parse(localStorage.getItem("kantina-cart") || "[]").filter(l => ITEMS[l.id]); } catch (e) { cart = []; }
+const save = () => { try { localStorage.setItem("kantina-cart", JSON.stringify(cart)); } catch (e) {} };
+
+function unitPrice(item, sel) {
+  return item.price + sel.reduce((s, [g, c]) => s + (item.options[g].choices[c].add || 0), 0);
+}
+function describe(item, sel) {
+  return sel.map(([g, c]) => item.options[g].choices[c]);
+}
+const cartCount = () => cart.reduce((s, l) => s + l.qty, 0);
+const cartTotal = () => cart.reduce((s, l) => s + unitPrice(ITEMS[l.id], l.sel) * l.qty, 0);
+
+/* ---------- Menu ---------- */
+function renderMenu() {
+  $("#menu").innerHTML = MENU.map(cat => `
+    ${MENU.length > 1 ? `<h2 class="section-title">${esc(cat.category)}</h2>` : ""}
+    <div class="grid">
+      ${cat.items.map(i => `
+        <button class="card" data-id="${i.id}" aria-label="Add ${esc(i.name)}">
+          <img src="${i.img}" alt="${esc(i.name)}" loading="lazy">
+          <div class="card-body">
+            <div>
+              <h3>${esc(i.name)}</h3>
+              <div class="price">${i.fromPrice ? "From " : ""}${money(i.price)}</div>
+            </div>
+            <span class="add" aria-hidden="true">+</span>
+          </div>
+        </button>`).join("")}
+    </div>`).join("");
+  document.querySelectorAll(".card").forEach(b => b.onclick = () => openSheet(b.dataset.id));
+}
+
+function updateBar() {
+  const n = cartCount();
+  $("#badge").hidden = n === 0;
+  $("#badge").textContent = n;
+  const b = $("#viewOrder");
+  b.disabled = n === 0;
+  b.textContent = n ? `View order · ${money(cartTotal())}` : "Add something to start";
+}
+
+/* ---------- Customisation sheet ---------- */
+let sheetQty = 1;
+function openSheet(id) {
+  const item = ITEMS[id];
+  sheetQty = 1;
+  $("#sheet").innerHTML = `
+    <button class="close-x" id="closeSheet" aria-label="Close">×</button>
+    <img class="sheet-img" src="${item.img}" alt="">
+    <div class="sheet-content">
+      <h2 id="sheetTitle">${esc(item.name)}</h2>
+      <p class="desc">${esc(item.desc || "")}</p>
+      <form id="optForm">
+        ${(item.options || []).map((g, gi) => `
+          <fieldset>
+            <legend>${esc(g.title)} <small>${g.type === "one" ? "Choose 1" : "Optional"}</small></legend>
+            ${g.choices.map((c, ci) => `
+              <label class="opt">
+                <input type="${g.type === "one" ? "radio" : "checkbox"}" name="g${gi}" value="${ci}" ${g.type === "one" && ci === 0 ? "checked" : ""}>
+                ${esc(c.label)}
+                ${c.add ? `<span class="delta">+${money(c.add)}</span>` : ""}
+              </label>`).join("")}
+          </fieldset>`).join("")}
+      </form>
+      <div class="qty-row">
+        <div class="stepper">
+          <button type="button" id="qMinus" aria-label="Less">−</button>
+          <span id="qVal">1</span>
+          <button type="button" id="qPlus" aria-label="More">+</button>
+        </div>
+        <button class="btn btn-primary" id="addBtn"></button>
+      </div>
+    </div>`;
+  const readSel = () => [...$("#optForm").querySelectorAll("input:checked")]
+    .map(inp => [Number(inp.name.slice(1)), Number(inp.value)]);
+  const refresh = () => {
+    $("#qVal").textContent = sheetQty;
+    $("#addBtn").textContent = `Add · ${money(unitPrice(item, readSel()) * sheetQty)}`;
+  };
+  $("#optForm").onchange = refresh;
+  $("#qMinus").onclick = () => { sheetQty = Math.max(1, sheetQty - 1); refresh(); };
+  $("#qPlus").onclick = () => { sheetQty = Math.min(20, sheetQty + 1); refresh(); };
+  $("#closeSheet").onclick = closeSheet;
+  $("#addBtn").onclick = () => {
+    const sel = readSel();
+    const key = id + "|" + sel.map(s => s.join(".")).join(",");
+    const existing = cart.find(l => l.key === key);
+    if (existing) existing.qty += sheetQty; else cart.push({ key, id, sel, qty: sheetQty });
+    save(); updateBar(); closeSheet();
+    toast(`${sheetQty} × ${item.name} added`);
+  };
+  refresh();
+  $("#overlay").classList.add("open");
+  $("#sheet").classList.add("open");
+  $("#sheet").scrollTop = 0;
+}
+function closeSheet() {
+  $("#overlay").classList.remove("open");
+  $("#sheet").classList.remove("open");
+}
+$("#overlay").onclick = closeSheet;
+
+/* ---------- Cart ---------- */
+function renderCart() {
+  const lines = $("#lines");
+  if (!cart.length) {
+    lines.innerHTML = `<p class="empty">Your order is empty.<br>Go back and add something tasty!</p>`;
+  } else {
+    lines.innerHTML = cart.map((l, idx) => {
+      const item = ITEMS[l.id];
+      const opts = describe(item, l.sel).map(c => esc(c.label) + (c.add ? ` +${money(c.add)}` : "")).join(" · ");
+      return `
+        <div class="line">
+          <img src="${item.img}" alt="">
+          <div class="info">
+            <h4>${esc(item.name)}</h4>
+            ${opts ? `<div class="opts">${opts}</div>` : ""}
+            <div class="mini">
+              <button data-act="dec" data-i="${idx}" aria-label="One less">${l.qty === 1 ? "🗑" : "−"}</button>
+              <span>${l.qty}</span>
+              <button data-act="inc" data-i="${idx}" aria-label="One more">+</button>
+            </div>
+          </div>
+          <div class="lp">${money(unitPrice(item, l.sel) * l.qty)}</div>
+        </div>`;
+    }).join("");
+  }
+  $("#total").textContent = money(cartTotal());
+  $("#waBtn").disabled = cart.length === 0;
+}
+$("#lines").onclick = (e) => {
+  const b = e.target.closest("button[data-act]");
+  if (!b) return;
+  const l = cart[Number(b.dataset.i)];
+  if (b.dataset.act === "inc") l.qty = Math.min(20, l.qty + 1);
+  else if (--l.qty <= 0) cart.splice(Number(b.dataset.i), 1);
+  save(); renderCart(); updateBar();
+};
+
+function openCart() { renderCart(); $("#cartView").classList.add("open"); $("#cartView").scrollTop = 0; }
+function closeCart() { $("#cartView").classList.remove("open"); }
+$("#cartBtn").onclick = () => cartCount() ? openCart() : toast("Your order is empty");
+$("#viewOrder").onclick = openCart;
+$("#backBtn").onclick = closeCart;
+
+document.querySelectorAll('input[name="mode"]').forEach(r => r.onchange = () => {
+  $("#addrField").hidden = r.value !== "Delivery" || !r.checked;
+});
+
+/* ---------- WhatsApp message ---------- */
+function buildMessage() {
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const name = $("#custName").value.trim();
+  const addr = $("#custAddr").value.trim();
+  const note = $("#custNote").value.trim();
+  const out = ["Hi! I'd like to order:"];
+  for (const l of cart) {
+    const item = ITEMS[l.id];
+    const says = describe(item, l.sel).map(c => c.say || c.label);
+    const withTxt = says.length ? " with " + (says.length > 1 ? says.slice(0, -1).join(", ") + " and " + says.at(-1) : says[0]) : "";
+    out.push(`• ${l.qty} ${item.name}${withTxt} — ${money(unitPrice(item, l.sel) * l.qty)}`);
+  }
+  out.push(`Total: ${money(cartTotal())}`);
+  out.push(mode === "Pickup" ? "Pickup, please." : `Delivery, please.${addr ? " Address: " + addr : ""}`);
+  if (name) out.push(`Name: ${name}`);
+  if (note) out.push(`Notes: ${note}`);
+  return out.join("\n");
+}
+$("#waBtn").onclick = () => {
+  if (!cart.length) return;
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildMessage())}`;
+  window.open(url, "_blank");
+};
+
+/* ---------- Toast ---------- */
+let tt;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1600);
+}
+
+renderMenu();
+updateBar();
+</script>
+</body>
+</html>
